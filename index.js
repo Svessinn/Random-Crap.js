@@ -91,21 +91,6 @@ const InsertSeriesBundles = async (bund, seri) => {
   return data
 }
 
-const InsertNIG = async (name, seri, clai, like) => {
-
-	let { data, error } = await supabase
-	.from("NIG_Test")
-	.insert([
-		{ char_name: name, series_name: seri, claim_rank: clai, like_rank: like }
-	])
-
-  if (error) {
-    console.error(error)
-    return
-  }
-  return data
-}
-
 const InsertCharacterSeries = async (name, seri, clai, like) => {
 
 	let { data, error } = await supabase
@@ -115,10 +100,12 @@ const InsertCharacterSeries = async (name, seri, clai, like) => {
 	])
 
   if (error) {
-    console.error(error)
+    console.error('Character: '+name+', already in Table: CharacterSeries')
     return 
-  }
-  return data
+  } else {
+		console.log('Inserted into Table: CharacterSeries\nCharacter: '+name+'\nSeries ID: '+seri+'\n')
+  	return data
+	}
 }
 
 const InsertCharacters = async (chName, chGen, chType, seri) => {
@@ -145,7 +132,7 @@ const InsertBundles = async (bund_name) => {
 	])
 
 	if (error) {
-		console.log(error)
+		console.error(error)
 		return
 	}
 	return data
@@ -160,7 +147,7 @@ const InsertSeries = async (seri) => {
 	])
 
 	if (error) {
-		console.log(error)
+		console.error(error)
 		fs.appendFile('Output.txt', error, (err) => {
 			if (err) logger.log('error', err);
 		})
@@ -174,7 +161,6 @@ bot.on('message', (message) => {
 
 		
 		mIF: if (message.embeds[0]) {
-			// console.log(Object.keys(message.embeds[0]))
 // Connect Series to Bundles
 			let desc = message.embeds[0].description
 			let auth = message.embeds[0].author
@@ -211,13 +197,11 @@ bot.on('message', (message) => {
 					InsertBundles(bundle)
 					let bID = await GetBundleID(bundle)
 					bID = bID[0]['id']
-					// console.log(bID)
 					for (let i in lst) {
 						InsertSeries(lst[i])
 						let sID = await GetSeriesID(lst[i])
 						sID = sID[0]['id']
 						InsertSeriesBundles(bID, sID)
-						console.log('updated', bID, sID)
 					};
 				} )()
 // Collecting Characters, ranks, series
@@ -241,7 +225,6 @@ bot.on('message', (message) => {
 				};
 
 				;(async () => {
-					InsertNIG(auth['name'], series_name, claim_rank, like_rank)
 					let o = 1
 					while (!msg[o].includes('Claims: #') && !msg[o].includes('key:') && !msg[o].includes('<:kakera:') && !msg.includes('SOULMATE')) {
 						series_name = series_name+' '+msg[o]
@@ -250,7 +233,6 @@ bot.on('message', (message) => {
 					let sID = await GetSeriesID(series_name)
 					sID = sID[0]['id']
 					InsertCharacterSeries(auth['name'], sID, claim_rank, like_rank)
-					console.log(auth['name'], sID)
 				})()
 
 			} else if (desc.includes('Claim Rank: #') && desc.includes('Like Rank: #')) {
@@ -295,17 +277,14 @@ bot.on('message', (message) => {
 				};
 				
 				;(async () => {
-					InsertNIG(auth['name'], series_name, claim_rank, like_rank)
 					let sID = await GetSeriesID(series_name)
 					sID = sID[0]['id']
 					InsertCharacterSeries(auth['name'], sID, claim_rank, like_rank)
-					console.log(auth['name'], sID)
 				})()
 				;(async () => {
 					let sID = await GetSeriesID(series_name)
 					sID = sID[0]['id']
 					InsertCharacters(auth['name'], gender, type, sID)
-					console.log('Character added:', auth['name'])
 				})()
 
 			};
@@ -373,17 +352,14 @@ bot.on('messageUpdate', (oldMessage, message) => {
 				};
 				
 				;(async () => {
-					InsertNIG(auth['name'], series_name, claim_rank, like_rank)
 					let sID = await GetSeriesID(series_name)
 					sID = sID[0]['id']
 					InsertCharacterSeries(auth['name'], sID, claim_rank, like_rank)
-					console.log(auth['name'], sID)
 				})()
 				;(async () => {
 					let sID = await GetSeriesID(series_name)
 					sID = sID[0]['id']
 					InsertCharacters(auth['name'], gender, type, sID)
-					console.log('Character added:', auth['name'])
 				})()
 			};
 
@@ -399,13 +375,11 @@ bot.on('messageUpdate', (oldMessage, message) => {
 					InsertBundles(bundle)
 					let bID = await GetBundleID(bundle)
 					bID = bID[0]['id']
-					// console.log(bID)
 					for (let i in lst) {
 						InsertSeries(lst[i])
 						let sID = await GetSeriesID(lst[i])
 						sID = sID[0]['id']
 						InsertSeriesBundles(bID, sID)
-						console.log('updated', bID, sID)
 					};
 				} )()
 			};
